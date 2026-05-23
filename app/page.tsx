@@ -5,6 +5,11 @@ import Icon from "@/components/Icon";
 import ToolCard from "@/components/ToolCard";
 import { icons, tools, categories } from "@/lib/data";
 
+const marqueeItems = [
+  "Merge PDF","Split PDF","Compress PDF","PDF to JPG","JPG to PDF",
+  "Rotate PDF","Watermark","Unlock PDF","Protect PDF","OCR","AI Summarize","Organize Pages",
+];
+
 export default function HomePage() {
   const [activeCat, setActiveCat] = useState("All Tools");
   const [search, setSearch] = useState("");
@@ -21,30 +26,65 @@ export default function HomePage() {
 
   return (
     <main>
+      {/* Hero */}
       <section className="hero">
-        <div className="container">
-          <div className="hero-badge">
-            <Icon d={icons.zap} size={12} fill="currentColor" stroke="none" /> 100% Free to use
+        <div className="hero-grid-bg" />
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
+          <div className="hero-eyebrow">
+            <span className="hero-eyebrow-dot">
+              <Icon d={icons.zap} size={10} fill="currentColor" stroke="none" />
+            </span>
+            100% Free · No Sign-up
           </div>
-          <h1>Every <em>PDF Tool</em><br />You&apos;ll Ever Need</h1>
+          <h1>
+            EVERY PDF
+            <em>TOOL.</em>
+          </h1>
           <p className="hero-sub">
-            Merge, split, compress, convert, protect, OCR and edit PDFs in a fast, secure and easy way. No sign-up required.
+            Merge, split, compress, convert, OCR, watermark, and protect your PDFs.
+            Fast, secure, and browser-based.
           </p>
-          <div className="search-bar">
-            <span className="search-icon"><Icon d={icons.search} size={18} /></span>
-            <input placeholder="Search PDF tools..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="hero-cta-row">
+            <button className="btn btn-primary btn-xl" onClick={() => router.push("/tools/merge")}>
+              Start for Free
+            </button>
+            <button className="btn btn-ghost btn-xl" onClick={() => router.push("/pricing")}>
+              View Pricing
+            </button>
           </div>
-          <div className="hero-note">
-            <span><Icon d={icons.shield} size={14} /> Secure &amp; Private</span>
-            <span><Icon d={icons.zap} size={14} /> Lightning Fast</span>
-            <span><Icon d={icons.globe} size={14} /> No Sign-up Required</span>
+          <div className="hero-meta">
+            <span>256-bit SSL encryption</span>
+            <span>Files deleted after processing</span>
+            <span>12+ PDF tools</span>
           </div>
         </div>
       </section>
 
-      <div className="container">
-        <div className="stats-row">
-          {[["50M+","Files Processed"],["4.9★","User Rating"],["12","PDF Tools"],["256-bit","SSL Security"]].map(([n,l]) => (
+      {/* Marquee */}
+      <div className="marquee-wrap">
+        <div className="marquee-track">
+          {[...marqueeItems, ...marqueeItems].map((item, i) => (
+            <div key={i} className="marquee-item">
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              {item}
+              {i < marqueeItems.length * 2 - 1 && <span className="marquee-sep" />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="container" style={{ paddingTop: 80 }}>
+        <div className="stats-strip">
+          {[
+            ["50M+", "Files processed"],
+            ["4.9★", "User rating"],
+            ["12", "PDF tools"],
+            ["256-bit", "SSL security"],
+          ].map(([n, l]) => (
             <div key={l} className="stat-item">
               <div className="stat-num">{n}</div>
               <div className="stat-label">{l}</div>
@@ -53,47 +93,63 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Tools */}
       <section className="section">
         <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">All PDF Tools</h2>
-            <span style={{ fontSize: 14, color: "var(--muted)" }}>{filtered.length} tools</span>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 40, flexWrap: "wrap", gap: 20 }}>
+            <div>
+              <div className="section-label">// All Tools</div>
+              <div className="section-title">THE TOOLKIT</div>
+            </div>
+            <div className="search-wrap" style={{ margin: 0, maxWidth: 320 }}>
+              <span className="search-icon"><Icon d={icons.search} size={16} /></span>
+              <input
+                placeholder="Search tools..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
+
           <div className="cat-tabs">
             {categories.map((c) => (
-              <button key={c} className={`cat-tab${activeCat === c ? " active" : ""}`} onClick={() => setActiveCat(c)}>{c}</button>
+              <button
+                key={c}
+                className={`cat-tab${activeCat === c ? " active" : ""}`}
+                onClick={() => setActiveCat(c)}
+              >
+                {c}
+              </button>
             ))}
           </div>
+
           <div className="tools-grid">
-            {filtered.map((t) => <ToolCard key={t.id} tool={t} />)}
+            {filtered.map((t, i) => (
+              <ToolCard key={t.id} tool={t} index={i} />
+            ))}
           </div>
+
           {filtered.length === 0 && (
-            <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>
-              <Icon d={icons.search} size={40} />
-              <p style={{ marginTop: 12 }}>No tools found for &quot;{search}&quot;</p>
+            <div style={{ textAlign: "center", padding: "80px 0", color: "var(--muted-2)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+              // No tools found for &quot;{search}&quot;
             </div>
           )}
         </div>
       </section>
 
-      <section className="features-section" style={{ background: "var(--surface)" }}>
+      {/* Features */}
+      <section className="section" style={{ background: "var(--bg-2)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
         <div className="container">
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 34, fontWeight: 800, letterSpacing: "-1px", color: "var(--ink)", marginBottom: 12 }}>Why Choose PDFKit Pro?</h2>
-            <p style={{ color: "var(--muted)", fontSize: 16 }}>Professional PDF tools built for real document work</p>
-          </div>
+          <div className="section-label">// Why PDFKit Pro</div>
+          <div className="section-title">BUILT DIFFERENT</div>
           <div className="features-grid">
             {[
-              { icon: icons.shield, title: "Bank-Level Security", desc: "All files are encrypted with 256-bit SSL. We delete your files permanently after processing." },
-              { icon: icons.zap, title: "Lightning Fast", desc: "Our cloud infrastructure processes your files in seconds, not minutes. No waiting around." },
-              { icon: icons.globe, title: "Works Everywhere", desc: "Use PDFKit Pro in any browser on any device. No software to install or update." },
+              { num: "01", title: "BANK-LEVEL SECURITY", desc: "256-bit SSL on every transfer. Files permanently deleted after processing. We never store or share your data." },
+              { num: "02", title: "LIGHTNING FAST", desc: "Cloud-powered processing completes in seconds. No queues, no waiting. Just results." },
+              { num: "03", title: "WORKS EVERYWHERE", desc: "Any browser, any device. No installs, no extensions, no plugins required." },
             ].map((f) => (
-              <div key={f.title} className="feature-item">
-                <div className="feature-icon-wrap">
-                  <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                    {Array.isArray(f.icon) ? f.icon.map((p,i) => <path key={i} d={p} />) : <path d={f.icon} />}
-                  </svg>
-                </div>
+              <div key={f.num} className="feature-item">
+                <div className="feature-num">{f.num}</div>
                 <h3>{f.title}</h3>
                 <p>{f.desc}</p>
               </div>
@@ -102,11 +158,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={{ padding: "80px 0", textAlign: "center" }}>
+      {/* CTA */}
+      <section className="section" style={{ textAlign: "center" }}>
         <div className="container">
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 800, letterSpacing: "-1.5px", color: "var(--ink)", marginBottom: 12 }}>Ready to get started?</h2>
-          <p style={{ color: "var(--muted)", marginBottom: 28, fontSize: 16 }}>Join millions of users who trust PDFKit Pro for their PDF needs.</p>
-          <button className="btn btn-primary btn-xl" onClick={() => router.push("/tools/merge")}>Start for Free</button>
+          <div className="section-label" style={{ justifyContent: "center", display: "flex" }}>// Get started</div>
+          <div className="section-title" style={{ marginBottom: 20 }}>
+            READY TO<br />
+            <span style={{ color: "var(--accent)" }}>START?</span>
+          </div>
+          <p style={{ color: "var(--muted)", marginBottom: 36, fontSize: 15 }}>
+            Join millions of users who trust PDFKit Pro for their document work.
+          </p>
+          <button className="btn btn-primary btn-xl" onClick={() => router.push("/tools/merge")}>
+            Try for Free
+          </button>
         </div>
       </section>
     </main>

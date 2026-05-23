@@ -8,17 +8,47 @@ export default function Footer() {
       <div className="container">
         <div className="footer-top">
           <div className="footer-brand">
-            <div className="footer-logo">
-              <div className="footer-logo-icon">PK</div>
-              <span className="footer-logo-text">PDFKit Pro</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  background: "var(--accent)",
+                  borderRadius: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--bg)",
+                  fontFamily: "var(--font-display)",
+                  fontSize: 14,
+                }}
+              >
+                PK
+              </div>
+              <span
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 20,
+                  letterSpacing: 2,
+                  color: "var(--white)",
+                }}
+              >
+                PDFKIT
+              </span>
             </div>
-            <p>All-in-One PDF Tools. Fast, Secure and Easy.</p>
-            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-              {["Twitter", "LinkedIn", "GitHub"].map((s) => (
-                <a key={s} style={{ fontSize: 13, color: "#64748B", cursor: "pointer", textDecoration: "none" }}>
-                  {s}
-                </a>
-              ))}
+            <p>
+              Every PDF tool you&apos;ll ever need. Fast, secure, and built for real document work.
+            </p>
+            <div
+              style={{
+                marginTop: 20,
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                color: "var(--muted-2)",
+                letterSpacing: 0.5,
+              }}
+            >
+              // 256-bit SSL encryption
             </div>
           </div>
 
@@ -34,27 +64,31 @@ export default function Footer() {
           </div>
 
           <div className="footer-col">
-            <h4>Company</h4>
+            <h4>More Tools</h4>
             <ul className="footer-links">
-              {["About Us", "Privacy Policy", "Terms of Service", "Contact Us"].map((l) => (
-                <li key={l}><a>{l}</a></li>
+              {tools.slice(6).map((t) => (
+                <li key={t.id}>
+                  <Link href={`/tools/${t.id}`}>{t.label}</Link>
+                </li>
               ))}
             </ul>
           </div>
 
           <div className="footer-col">
-            <h4>Support</h4>
+            <h4>Company</h4>
             <ul className="footer-links">
-              {["Help Center", "How it Works", "FAQs"].map((l) => (
-                <li key={l}><a>{l}</a></li>
+              {["About", "Pricing", "Privacy Policy", "Terms of Service", "Contact"].map((l) => (
+                <li key={l}>
+                  <a>{l}</a>
+                </li>
               ))}
             </ul>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <span>© 2024 PDFKit Pro. All rights reserved.</span>
-          <span>Made with ♥ for document lovers</span>
+          <span>© 2024 PDFKit Pro. MIT License.</span>
+          <span>Built with Next.js 15</span>
         </div>
       </div>
     </footer>

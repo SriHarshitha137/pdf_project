@@ -109,3 +109,9 @@ vercel
 ```
 
 Or push to GitHub and import at [vercel.com/new](https://vercel.com/new).
+
+---
+
+## License
+
+MIT
