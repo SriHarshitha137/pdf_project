@@ -221,11 +221,19 @@ const CFGS: Record<string, ToolConfig> = {
   },
 };
 
-export default function ToolPage({ params }: { params: { toolId: string } }) {
-  const router = useRouter();
-  const cfg = CFGS[params.toolId];
-  const tool = tools.find((t) => t.id === params.toolId);
+import { use } from "react";
 
+export default function ToolPage({
+  params,
+}: {
+  params: Promise<{ toolId: string }>;
+}) {
+  const router = useRouter();
+
+  const { toolId } = use(params);
+
+  const cfg = CFGS[toolId];
+  const tool = tools.find((t) => t.id === toolId);
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [state, setState] = useState<ToolState>({ splitMode: "Split by page range", rotation: "Left 90°", wmTab: "Text" });
   const [pState, setPState] = useState<"idle"|"processing"|"complete"|"error">("idle");
