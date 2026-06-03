@@ -13,3 +13,17 @@ export interface JobStatusResponse {
 export interface DownloadResponse {
   download_url: string;
 }
+
+
+export interface JobResponse {
+  job_id: number;
+  status: string;
+}
+
+
+
+
+export interface UploadResponse {
+  file_id: number;
+  filename: string;
+}
