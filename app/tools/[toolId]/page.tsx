@@ -1,8 +1,20 @@
 "use client";
 import {
   mergePdf,
+  splitPdf,
+  compressPdf,
+  protectPdf,
+  unlockPdf,
+  pdfToJpg,
+  jpgToPdf,
+  ocrPdf,
+  uploadFile,
   getJobStatus,
   getDownloadUrl,
+  rotatePdf,
+watermarkPdf,
+organizePdf,
+aiSummarize,
 } from "@/lib/pdfApi";
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -266,49 +278,149 @@ const [downloadUrl, setDownloadUrl] =useState("");
     setPState("processing");
     setProgress(0);
 
-    const result = await mergePdf(
-      files.map((f) => f.file)
-    );
+    let result;
+
+    if (toolId === "merge") {
+      result = await mergePdf(
+        files.map((f) => f.file)
+      );
+    }
+
+    else {
+      const uploadedFiles =
+        await Promise.all(
+          files.map((f) =>
+            uploadFile(f.file)
+          )
+        );
+
+      const fileIds =
+        uploadedFiles.map(
+          (f) => f.file_id
+        );
+
+      switch (toolId) {
+
+        case "split":
+          result = await splitPdf(
+            fileIds[0]
+          );
+          break;
+
+        case "compress":
+          result = await compressPdf(
+            fileIds[0]
+          );
+          break;
+
+        case "protect":
+          result = await protectPdf(
+            fileIds[0],
+            "123456"
+          );
+          break;
+
+        case "unlock":
+          result = await unlockPdf(
+            fileIds[0],
+            "123456"
+          );
+          break;
+
+        case "pdf2jpg":
+          result = await pdfToJpg(
+            fileIds[0]
+          );
+          break;
+
+        case "jpg2pdf":
+          result = await jpgToPdf(
+            fileIds
+          );
+          break;
+
+        case "ocr":
+          result = await ocrPdf(
+            fileIds[0]
+          );
+          break;
+          case "rotate":
+  result = await rotatePdf(
+    fileIds[0]
+  );
+  break;
+
+case "watermark":
+  result = await watermarkPdf(
+    fileIds[0]
+  );
+  break;
+
+case "organize":
+  result = await organizePdf(
+    fileIds[0]
+  );
+  break;
+
+case "ai":
+  result = await aiSummarize(
+    fileIds[0]
+  );
+  break;
+
+        default:
+          throw new Error(
+            `Tool ${toolId} not implemented`
+          );
+      }
+    }
 
     setJobId(result.job_id);
 
-    const interval = setInterval(async () => {
-      const status = await getJobStatus(
-        result.job_id
-      );
-
-      setProgress(
-        status.progress || 0
-      );
-
-      if (status.progress) {
-        setCurStep(
-          Math.min(
-            Math.floor(
-              (status.progress / 100) * 4
-            ),
-            4
-          )
-        );
-      }
-
-      if (
-        status.status === "completed"
-      ) {
-        clearInterval(interval);
-
-        const download =
-          await getDownloadUrl(
+    const interval = setInterval(
+      async () => {
+        const status =
+          await getJobStatus(
             result.job_id
           );
 
-        setDownloadUrl(
-          download.download_url
+        setProgress(
+          status.progress || 0
         );
 
-        setPState("complete");
-      }
-    }, 2000);
+        if (status.progress) {
+          setCurStep(
+            Math.min(
+              Math.floor(
+                (status.progress /
+                  100) *
+                  4
+              ),
+              4
+            )
+          );
+        }
+
+        if (
+          status.status ===
+          "completed"
+        ) {
+          clearInterval(interval);
+
+          const download =
+            await getDownloadUrl(
+              result.job_id
+            );
+
+          setDownloadUrl(
+            download.download_url
+          );
+
+          setPState("complete");
+        }
+      },
+      2000
+    );
 
   } catch (error) {
     console.error(error);
@@ -495,12 +607,14 @@ const [downloadUrl, setDownloadUrl] =useState("");
               </div>
             </div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <button
+   <button
   className="btn btn-dark btn-lg"
   onClick={() =>
     window.open(downloadUrl, "_blank")
   }
 >
+  Download PDF
+
               </button>
               <button className="btn btn-outline btn-lg" onClick={() => { setFiles([]); setPState("idle"); setProgress(0); }}>
                 Process Another
