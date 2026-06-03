@@ -1,4 +1,9 @@
 "use client";
+import {
+  mergePdf,
+  getJobStatus,
+  getDownloadUrl,
+} from "@/lib/pdfApi";
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -240,6 +245,8 @@ export default function ToolPage({
   const [progress, setProgress] = useState(0);
   const [curStep, setCurStep] = useState(0);
   const [isDrag, setIsDrag] = useState(false);
+  const [jobId, setJobId] =useState("");
+const [downloadUrl, setDownloadUrl] =useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback((fl: FileList | null) => {
@@ -252,17 +259,62 @@ export default function ToolPage({
     setFiles((p) => (cfg?.multi ? [...p, ...arr] : arr.slice(0, 1)));
   }, [cfg?.multi]);
 
-  const startProcessing = () => {
-    if (!files.length) return;
-    setPState("processing"); setProgress(0); setCurStep(0);
-    let p = 0;
-    const iv = setInterval(() => {
-      p += Math.random() * 9 + 5;
-      if (p >= 100) { p = 100; clearInterval(iv); setTimeout(() => setPState("complete"), 300); }
-      setProgress(Math.min(p, 100));
-      setCurStep(Math.min(Math.floor((p / 100) * 4), 4));
-    }, 160);
-  };
+ const startProcessing = async () => {
+  if (!files.length) return;
+
+  try {
+    setPState("processing");
+    setProgress(0);
+
+    const result = await mergePdf(
+      files.map((f) => f.file)
+    );
+
+    setJobId(result.job_id);
+
+    const interval = setInterval(async () => {
+      const status = await getJobStatus(
+        result.job_id
+      );
+
+      setProgress(
+        status.progress || 0
+      );
+
+      if (status.progress) {
+        setCurStep(
+          Math.min(
+            Math.floor(
+              (status.progress / 100) * 4
+            ),
+            4
+          )
+        );
+      }
+
+      if (
+        status.status === "completed"
+      ) {
+        clearInterval(interval);
+
+        const download =
+          await getDownloadUrl(
+            result.job_id
+          );
+
+        setDownloadUrl(
+          download.download_url
+        );
+
+        setPState("complete");
+      }
+    }, 2000);
+
+  } catch (error) {
+    console.error(error);
+    setPState("error");
+  }
+};
 
   if (!cfg || !tool) {
     return (
@@ -443,9 +495,12 @@ export default function ToolPage({
               </div>
             </div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <button className="btn btn-dark btn-lg">
-                <SvgIcon d={["M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4","M7 10l5 5 5-5","M12 15V3"]} size={15} />
-                Download
+              <button
+  className="btn btn-dark btn-lg"
+  onClick={() =>
+    window.open(downloadUrl, "_blank")
+  }
+>
               </button>
               <button className="btn btn-outline btn-lg" onClick={() => { setFiles([]); setPState("idle"); setProgress(0); }}>
                 Process Another
