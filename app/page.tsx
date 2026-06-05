@@ -45,7 +45,7 @@ export default function HomePage() {
           <div>
             <div className="hero-eyebrow">
               <span className="hero-eyebrow-dot" />
-              Simple. Powerful. Private.
+              SIMPLE. POWERFUL. PRIVATE.
             </div>
             <h1>
               PDF tools<br />
@@ -67,12 +67,49 @@ export default function HomePage() {
 
           {/* Illustration */}
           <div className="hero-illustration">
-            <div className="illus-page" />
-            <div className="illus-circle" />
-            <div className="illus-square" />
-            <div className="illus-star">✳</div>
-            <div className="illus-line" />
-            <div className="illus-curve" />
+            <svg width="520" height="420" viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ overflow: "visible" }}>
+              <defs>
+                <pattern id="dotPattern" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1.2" fill="var(--illus-line)" opacity="0.3" />
+                </pattern>
+                <linearGradient id="greenGradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="var(--illus-green-start)" />
+                  <stop offset="100%" stopColor="var(--illus-green-end)" />
+                </linearGradient>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 1 2 L 7 5 L 1 8" fill="none" stroke="var(--illus-line)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </marker>
+              </defs>
+              
+              {/* Dotted grid details */}
+              <rect x="250" y="160" width="120" height="120" fill="url(#dotPattern)" />
+              
+              {/* Page outline */}
+              <g style={{ filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.02))" }}>
+                <path d="M 230 40 L 330 40 L 370 80 L 370 300 L 230 300 Z" fill="var(--illus-page-bg)" stroke="var(--illus-page-border)" strokeWidth="1.5" />
+                <path d="M 330 40 L 330 80 L 370 80 Z" fill="var(--bg-3)" stroke="var(--illus-page-border)" strokeWidth="1.5" />
+                <circle cx="350" cy="120" r="1.5" fill="var(--illus-page-border)" />
+                <circle cx="350" cy="280" r="1.5" fill="var(--illus-page-border)" />
+              </g>
+              
+              {/* Green Circle */}
+              <circle cx="210" cy="170" r="80" fill="url(#greenGradient)" />
+              
+              {/* Dynamic Square */}
+              <rect x="150" y="210" width="70" height="70" rx="4" fill="var(--illus-square-bg)" stroke="var(--illus-page-border)" strokeWidth="0.5" />
+              
+              {/* Star */}
+              <g stroke="var(--illus-line)" strokeWidth="1.2" opacity="0.6">
+                <line x1="120" y1="110" x2="140" y2="130" />
+                <line x1="140" y1="110" x2="120" y2="130" />
+                <line x1="130" y1="105" x2="130" y2="135" />
+                <line x1="115" y1="120" x2="145" y2="120" />
+              </g>
+              
+              {/* Curved sweeping lines using arrow markers */}
+              <path d="M 115 285 Q 195 305 255 205" stroke="var(--illus-line)" strokeWidth="1.5" strokeDasharray="3 3" fill="none" markerEnd="url(#arrow)" />
+              <path d="M 185 245 Q 235 270 290 220" stroke="var(--illus-line)" strokeWidth="1.5" fill="none" markerEnd="url(#arrow)" />
+            </svg>
           </div>
         </div>
       </div>
