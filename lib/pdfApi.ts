@@ -213,3 +213,126 @@ export async function aiSummarize(
 
   return response.data;
 }
+
+export async function addPageNumbers(
+  fileId: number,
+  position: string
+) {
+  const response = await api.post(
+    "/api/v1/tools/add-page-numbers",
+    {
+      file_id: fileId,
+      position,
+    }
+  );
+
+  return response.data;
+}
+
+export async function wordToPdf(
+  fileId: number
+) {
+  const response = await api.post(
+    "/api/v1/tools/word-to-pdf",
+    {
+      file_id: fileId,
+    }
+  );
+
+  return response.data;
+}
+
+export async function pdfToWord(
+  fileId: number
+) {
+  const response = await api.post(
+    "/api/v1/tools/pdf-to-word",
+    {
+      file_id: fileId,
+    }
+  );
+
+  return response.data;
+}
+
+export async function excelToPdf(
+  fileId: number
+) {
+  const response = await api.post(
+    "/api/v1/tools/excel-to-pdf",
+    {
+      file_id: fileId,
+    }
+  );
+
+  return response.data;
+}
+
+export async function pdfToExcel(
+  fileId: number
+) {
+  const response = await api.post(
+    "/api/v1/tools/pdf-to-excel",
+    {
+      file_id: fileId,
+    }
+  );
+
+  return response.data;
+}
+
+export async function pptToPdf(
+  fileId: number
+) {
+  const response = await api.post(
+    "/api/v1/tools/ppt-to-pdf",
+    {
+      file_id: fileId,
+    }
+  );
+
+  return response.data;
+}
+
+export async function signPdf(
+  fileId: number
+) {
+  const response = await api.post(
+    "/api/v1/tools/sign-pdf",
+    {
+      file_id: fileId,
+    }
+  );
+
+  return response.data;
+}
+
+export async function aiTranslate(
+  fileId: number,
+  targetLanguage: string
+) {
+  const response = await api.post(
+    "/api/v1/tools/ai-translate",
+    {
+      file_id: fileId,
+      target_language: targetLanguage,
+    }
+  );
+
+  return response.data;
+}
+
+export async function aiRewrite(
+  fileId: number,
+  tone: string
+) {
+  const response = await api.post(
+    "/api/v1/tools/ai-rewrite",
+    {
+      file_id: fileId,
+      tone,
+    }
+  );
+
+  return response.data;
+}

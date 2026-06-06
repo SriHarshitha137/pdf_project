@@ -27,6 +27,16 @@ export const icons: Record<string, string | string[]> = {
   users: ["M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2","M23 21v-2a4 4 0 00-3-3.87","M16 3.13a4 4 0 010 7.75","M9 7a4 4 0 100 8 4 4 0 000-8z"],
   globe: ["M12 2a10 10 0 110 20A10 10 0 0112 2z","M2 12h20","M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"],
   settings: ["M12 15a3 3 0 100-6 3 3 0 000 6z","M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"],
+  addPageNumbers: ["M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z","M14 2v6h6","M12 18v-4","M10 16h4"],
+  word2pdf: ["M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z","M14 2v6h6","M8 13h2l2 5 2-5h2"],
+  pdf2word: ["M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z","M14 2v6h6","M9 13l1.5 5L12 14l1.5 4L15 13"],
+  excel2pdf: ["M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z","M14 2v6h6","M9 13l2 2 4-4"],
+  pdf2excel: ["M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3","M9 9h6","M9 12h6","M9 15h4"],
+  ppt2pdf: ["M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z","M14 2v6h6","M9 14a3 3 0 100-4 3 3 0 000 4z","M14 12h2"],
+  sign: ["M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z","M15 5l4 4"],
+  aiTranslate: ["M12 2a10 10 0 110 20A10 10 0 0112 2z","M2 12h20","M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"],
+  aiRewrite: ["M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7","M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"],
+  qr: ["M3 3h7v7H3z","M14 3h7v7h-7z","M3 14h7v7H3z","M14 14h3v3h-3z","M17 17h3v3h-3z","M14 20h3"],
 };
 
 export interface Tool {
@@ -39,21 +49,31 @@ export interface Tool {
 }
 
 export const tools: Tool[] = [
-  { id: "merge",    label: "Merge PDF",      desc: "Combine multiple PDFs into a single file",           color: "#E84040", icon: icons.merge,    category: "Merge & Split" },
-  { id: "split",    label: "Split PDF",      desc: "Extract pages or split PDF into parts",              color: "#E8A040", icon: icons.split,    category: "Merge & Split" },
-  { id: "compress", label: "Compress PDF",   desc: "Reduce PDF file size without losing quality",        color: "#40A8E8", icon: icons.compress, category: "Compress" },
-  { id: "pdf2jpg",  label: "PDF to JPG",     desc: "Convert PDF pages to JPG images",                   color: "#E84080", icon: icons.pdf2jpg,  category: "Convert" },
-  { id: "jpg2pdf",  label: "JPG to PDF",     desc: "Convert images to PDF document",                    color: "#8040E8", icon: icons.jpg2pdf,  category: "Convert" },
-  { id: "rotate",   label: "Rotate PDF",     desc: "Rotate PDF pages left or right",                    color: "#40C8A8", icon: icons.rotate,   category: "Edit & Sign" },
-  { id: "watermark",label: "Watermark PDF",  desc: "Add text or image watermark to PDF",                color: "#E8C040", icon: icons.watermark,category: "Edit & Sign" },
-  { id: "unlock",   label: "Unlock PDF",     desc: "Remove password and restrictions",                  color: "#40E880", icon: icons.unlock,   category: "Protect" },
-  { id: "protect",  label: "Protect PDF",    desc: "Add password and encrypt your PDF",                 color: "#E86040", icon: icons.protect,  category: "Protect" },
-  { id: "organize", label: "Organize PDF",   desc: "Reorder, delete or add pages in PDF",               color: "#6080E8", icon: icons.organize, category: "Organize" },
-  { id: "ocr",      label: "OCR PDF",        desc: "Make scanned PDF searchable and editable",          color: "#40E8C8", icon: icons.ocr,      category: "OCR" },
-  { id: "ai",       label: "AI Summarize",   desc: "Get AI summary of your PDF content",                color: "#C840E8", icon: icons.ai,       category: "AI" },
+  { id: "merge",          label: "Merge PDF",        desc: "Combine multiple PDFs into a single file",           color: "#4A7C59", icon: icons.merge,          category: "Merge & Split" },
+  { id: "split",          label: "Split PDF",        desc: "Extract pages or split PDF into parts",              color: "#6AAF7E", icon: icons.split,          category: "Merge & Split" },
+  { id: "compress",       label: "Compress PDF",     desc: "Reduce PDF file size without losing quality",        color: "#40A8E8", icon: icons.compress,       category: "Compress" },
+  { id: "pdf2jpg",        label: "PDF to JPG",       desc: "Convert PDF pages to JPG images",                   color: "#5B8FA8", icon: icons.pdf2jpg,        category: "Convert" },
+  { id: "jpg2pdf",        label: "JPG to PDF",       desc: "Convert images to PDF document",                    color: "#7A6BAE", icon: icons.jpg2pdf,        category: "Convert" },
+  { id: "word2pdf",       label: "Word to PDF",      desc: "Convert .docx Word files to PDF",                   color: "#2B579A", icon: icons.word2pdf,       category: "Convert" },
+  { id: "pdf2word",       label: "PDF to Word",      desc: "Extract PDF content to editable .docx",             color: "#185ABD", icon: icons.pdf2word,       category: "Convert" },
+  { id: "excel2pdf",      label: "Excel to PDF",     desc: "Convert .xlsx spreadsheets to PDF",                 color: "#107C41", icon: icons.excel2pdf,      category: "Convert" },
+  { id: "pdf2excel",      label: "PDF to Excel",     desc: "Extract tables from PDF to .xlsx",                  color: "#1D6F42", icon: icons.pdf2excel,      category: "Convert" },
+  { id: "ppt2pdf",        label: "PPT to PDF",       desc: "Convert PowerPoint presentations to PDF",           color: "#7A6BAE", icon: icons.ppt2pdf,        category: "Convert" },
+  { id: "rotate",         label: "Rotate PDF",       desc: "Rotate PDF pages left or right",                    color: "#40C8A8", icon: icons.rotate,         category: "Edit & Sign" },
+  { id: "addPageNumbers", label: "Add Page Numbers", desc: "Stamp page numbers at chosen position",             color: "#4A7C59", icon: icons.addPageNumbers, category: "Edit & Sign" },
+  { id: "watermark",      label: "Watermark PDF",    desc: "Add text or image watermark to PDF",                color: "#6AAF7E", icon: icons.watermark,      category: "Edit & Sign" },
+  { id: "sign",           label: "Sign PDF",         desc: "Apply a digital signature to your PDF",             color: "#5B8FA8", icon: icons.sign,           category: "Edit & Sign" },
+  { id: "unlock",         label: "Unlock PDF",       desc: "Remove password and restrictions",                  color: "#40C8A8", icon: icons.unlock,         category: "Protect" },
+  { id: "protect",        label: "Protect PDF",      desc: "Add password and encrypt your PDF",                 color: "#4A7C59", icon: icons.protect,        category: "Protect" },
+  { id: "organize",       label: "Organize PDF",     desc: "Reorder, delete or add pages in PDF",               color: "#6080E8", icon: icons.organize,       category: "Organize" },
+  { id: "ocr",            label: "OCR PDF",          desc: "Make scanned PDF searchable and editable",          color: "#40C8A8", icon: icons.ocr,            category: "OCR" },
+  { id: "ai",             label: "AI Summarise",     desc: "Get AI summary of your PDF content",                color: "#6AAF7E", icon: icons.ai,             category: "AI" },
+  { id: "ai-translate",   label: "AI Translate",     desc: "Translate PDF content to target language",          color: "#4A7C59", icon: icons.aiTranslate,    category: "AI" },
+  { id: "ai-rewrite",     label: "AI Rewrite",       desc: "Rewrite PDF content in a new tone or style",        color: "#40C8A8", icon: icons.aiRewrite,      category: "AI" },
+  { id: "qr",             label: "QR Generator",     desc: "Generate a QR code from any URL or link",           color: "#0F9D58", icon: icons.qr,             category: "Utilities" },
 ];
 
-export const categories = ["All Tools", "Merge & Split", "Convert", "Edit & Sign", "Compress", "Protect", "OCR", "Organize", "AI"];
+export const categories = ["All Tools", "Merge & Split", "Convert", "Edit & Sign", "Compress", "Protect", "OCR", "Organize", "AI", "Utilities"];
 
 export interface Plan {
   name: string;
