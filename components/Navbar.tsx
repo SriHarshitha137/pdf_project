@@ -83,8 +83,8 @@ export default function Navbar() {
               {theme === "dark" ? "Light" : "Dark"}
             </button>
 
-            <button className="btn btn-ghost btn-sm">Sign in</button>
-            <button className="btn btn-dark btn-sm">Get Started</button>
+            <Link href="/signin" className="btn btn-ghost btn-sm">Sign in</Link>
+            <Link href="/signup" className="btn btn-dark btn-sm">Get Started</Link>
           </div>
         </div>
       </div>
