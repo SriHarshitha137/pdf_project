@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { publicTools } from "@/lib/data";
+import { tools } from "@/lib/data";
 
 function FooterIcon({ d, size = 14 }: { d: string | string[]; size?: number }) {
   return (
@@ -27,7 +27,7 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Tools</h4>
             <ul>
-              {publicTools.slice(0, 6).map((t) => (
+              {tools.slice(0, 8).map((t) => (
                 <li key={t.id}><Link href={`/tools/${t.id}`}>{t.label}</Link></li>
               ))}
             </ul>
@@ -35,7 +35,15 @@ export default function Footer() {
           <div className="footer-col">
             <h4>More Tools</h4>
             <ul>
-              {publicTools.slice(6).map((t) => (
+              {tools.slice(8, 16).map((t) => (
+                <li key={t.id}><Link href={`/tools/${t.id}`}>{t.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Utilities</h4>
+            <ul>
+              {tools.slice(16, 23).map((t) => (
                 <li key={t.id}><Link href={`/tools/${t.id}`}>{t.label}</Link></li>
               ))}
             </ul>
