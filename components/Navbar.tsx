@@ -61,9 +61,7 @@ export default function Navbar() {
               )}
             </div>
             <Link href="/" className="nav-link">Solutions</Link>
-            <Link href="/pricing" className="nav-link">Pricing</Link>
             <Link href="/about" className="nav-link">Resources</Link>
-            <Link href="/about" className="nav-link">API</Link>
           </div>
 
           <div className="nav-actions">
@@ -83,8 +81,7 @@ export default function Navbar() {
               {theme === "dark" ? "Light" : "Dark"}
             </button>
 
-            <Link href="/signin" className="btn btn-ghost btn-sm">Sign in</Link>
-            <Link href="/signup" className="btn btn-dark btn-sm">Get Started</Link>
+
           </div>
         </div>
       </div>

@@ -3,7 +3,6 @@ import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ToolCard from "@/components/ToolCard";
-import { useAuth } from "@/lib/AuthContext";
 import { tools } from "@/lib/data";
 import { analyzeFile, DetectedFile } from "@/lib/fileDetect";
 import { uploadFile } from "@/lib/pdfApi";
@@ -303,7 +302,6 @@ function HomeUploadZone({ onFile }: { onFile: (f: File, d: DetectedFile) => void
 
 // ── Main HomePage ─────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
   const [activeCat, setActiveCat] = useState("all");
   const [search, setSearch] = useState("");
   const [showAll, setShowAll] = useState(false);
@@ -312,14 +310,6 @@ export default function HomePage() {
   // Home upload state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [detectedFile, setDetectedFile] = useState<DetectedFile | null>(null);
-
-  const handleAdminClick = () => {
-    if (isAuthenticated) {
-      router.push("/admin");
-    } else {
-      alert("You are not authorized to do that.");
-    }
-  };
 
   const handleHomeUpload = useCallback((f: File, d: DetectedFile) => {
     setUploadedFile(f);
@@ -344,10 +334,6 @@ export default function HomePage() {
       <div className="container">
         <div className="hero">
           <div>
-            <div className="hero-eyebrow">
-              <span className="hero-eyebrow-dot" />
-              SIMPLE. POWERFUL. PRIVATE.
-            </div>
             <h1>
               PDF tools<br />
               <span className="serif">that just work</span><span className="period">.</span>
@@ -360,12 +346,7 @@ export default function HomePage() {
                 Explore All Tools
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
-              <Link href="/pricing" className="btn btn-outline btn-xl">
-                View Pricing
-              </Link>
-              <button suppressHydrationWarning onClick={handleAdminClick} className="btn btn-outline btn-xl">
-                Admin Panel
-              </button>
+
             </div>
           </div>
 
@@ -441,21 +422,13 @@ export default function HomePage() {
                 </button>
               ))}
 
-              <div className="sidebar-download" style={{ marginTop: 24 }}>
-                <div className="sidebar-download-title">Work faster.</div>
-                <div className="sidebar-download-desc">Install our desktop app for offline productivity.</div>
-                <button suppressHydrationWarning className="btn btn-dark btn-sm" style={{ width: "100%", justifyContent: "center" }}>
-                  <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></svg>
-                  Download App
-                </button>
-              </div>
+
             </div>
 
             {/* Tools grid */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <div>
-                  <div className="tools-section-num">01</div>
                   <h2 className="tools-section-title">
                     {activeCat === "all" ? "All PDF Tools" : activeCat}
                   </h2>

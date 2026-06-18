@@ -27,15 +27,23 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Tools</h4>
             <ul>
-              {tools.slice(0, 6).map((t) => (
+              {tools.slice(0, 8).map((t) => (
                 <li key={t.id}><Link href={`/tools/${t.id}`}>{t.label}</Link></li>
               ))}
             </ul>
           </div>
           <div className="footer-col">
-            <h4>More</h4>
+            <h4>More Tools</h4>
             <ul>
-              {tools.slice(6).map((t) => (
+              {tools.slice(8, 16).map((t) => (
+                <li key={t.id}><Link href={`/tools/${t.id}`}>{t.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Utilities</h4>
+            <ul>
+              {tools.slice(16).map((t) => (
                 <li key={t.id}><Link href={`/tools/${t.id}`}>{t.label}</Link></li>
               ))}
             </ul>
@@ -43,7 +51,7 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Company</h4>
             <ul>
-              {["About", "Pricing", "Privacy Policy", "Terms of Service", "Contact"].map((l) => (
+              {["About", "Privacy Policy", "Terms of Service", "Contact"].map((l) => (
                 <li key={l}><a href="#">{l}</a></li>
               ))}
             </ul>

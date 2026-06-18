@@ -630,7 +630,7 @@ body {
 
 /* ── FOOTER ── */
 .footer { background: var(--footer-bg); padding: 48px 0 24px; margin-top: auto; transition: background 0.3s; }
-.footer-top { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px; }
+.footer-top { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px; }
 .footer-logo-mark { width: 28px; height: 28px; background: var(--footer-text); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--footer-bg); font-family: var(--font-sans); }
 .footer-logo-row { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
 .footer-logo-name { font-size: 15px; font-weight: 600; color: var(--footer-text); letter-spacing: 0.5px; }

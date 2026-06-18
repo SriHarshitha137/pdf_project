@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "./ThemeProvider";
-import { useAuth } from "@/lib/AuthContext";
 import { tools } from "@/lib/data";
 
 function NavIcon({ d, size = 14 }: { d: string | string[]; size?: number }) {
@@ -18,7 +17,6 @@ export default function Navbar() {
   const [showMoreTools, setShowMoreTools] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const { theme, toggle } = useTheme();
-  const { isAuthenticated, logout, user } = useAuth();
   const visibleTools = showMoreTools ? tools : tools.slice(0, 18);
 
   const closeMenu = () => {
@@ -95,9 +93,7 @@ export default function Navbar() {
               )}
             </div>
             <Link href="/" className="nav-link">Solutions</Link>
-            <Link href="/pricing" className="nav-link">Pricing</Link>
             <Link href="/about" className="nav-link">Resources</Link>
-            <Link href="/about" className="nav-link">API</Link>
           </div>
 
           <div className="nav-actions">
@@ -117,21 +113,7 @@ export default function Navbar() {
               {theme === "dark" ? "Light" : "Dark"}
             </button>
 
-            {isAuthenticated ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>
-                  {user?.email}
-                </span>
-                <button suppressHydrationWarning onClick={logout} className="btn btn-ghost btn-sm">
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <>
-                <Link href="/signin" className="btn btn-ghost btn-sm">Sign in</Link>
-                <Link href="/signup" className="btn btn-dark btn-sm">Get Started</Link>
-              </>
-            )}
+
           </div>
         </div>
       </div>
