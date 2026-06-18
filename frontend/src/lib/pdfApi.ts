@@ -341,3 +341,14 @@ export async function generateQr(url: string) {
   );
   return response.data;
 }
+
+export async function runTool(
+  endpoint: string,
+  payload: Record<string, unknown>
+) {
+  const response = await api.post(
+    `/api/v1/tools/${endpoint}`,
+    payload
+  );
+  return response.data;
+}

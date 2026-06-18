@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "./ThemeProvider";
 import { useAuth } from "@/lib/AuthContext";
@@ -15,8 +15,27 @@ function NavIcon({ d, size = 14 }: { d: string | string[]; size?: number }) {
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showMoreTools, setShowMoreTools] = useState(false);
+  const toolsMenuRef = useRef<HTMLDivElement>(null);
   const { theme, toggle } = useTheme();
   const { isAuthenticated, logout, user } = useAuth();
+  const visibleTools = showMoreTools ? tools : tools.slice(0, 18);
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setShowMoreTools(false);
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!toolsMenuRef.current?.contains(event.target as Node)) {
+        closeMenu();
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [menuOpen]);
 
   return (
     <nav className="nav">
@@ -28,10 +47,15 @@ export default function Navbar() {
           </Link>
 
           <div className="nav-links" style={{ position: "relative" }}>
-            <div style={{ position: "relative" }}>
+            <div ref={toolsMenuRef} style={{ position: "relative" }}>
               <button suppressHydrationWarning
                 className={`nav-link${menuOpen ? " active" : ""}`}
-                onClick={() => setMenuOpen((o) => !o)}
+                onClick={() => {
+                  setMenuOpen((open) => {
+                    if (open) setShowMoreTools(false);
+                    return !open;
+                  });
+                }}
               >
                 Tools
                 <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -45,8 +69,8 @@ export default function Navbar() {
                     All Tools
                   </div>
                   <div className="mega-menu-grid">
-                    {tools.map((t) => (
-                      <Link key={t.id} href={`/tools/${t.id}`} className="mega-item" onClick={() => setMenuOpen(false)}>
+                    {visibleTools.map((t) => (
+                      <Link key={t.id} href={`/tools/${t.id}`} className="mega-item" onClick={closeMenu}>
                         <div className="mega-icon" style={{ background: t.color + "15" }}>
                           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={t.color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                             {Array.isArray(t.icon) ? t.icon.map((p, j) => <path key={j} d={p} />) : <path d={t.icon} />}
@@ -59,6 +83,14 @@ export default function Navbar() {
                       </Link>
                     ))}
                   </div>
+                  {!showMoreTools && tools.length > visibleTools.length && (
+                    <button suppressHydrationWarning className="mega-view-more" onClick={() => setShowMoreTools(true)}>
+                      View More Tools
+                      <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -105,7 +137,7 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 100 }} />
+        <div onClick={closeMenu} style={{ position: "fixed", inset: 0, zIndex: 300 }} />
       )}
     </nav>
   );

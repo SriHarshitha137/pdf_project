@@ -100,10 +100,15 @@ def get_job_status(
             detail="Job not found"
         )
 
-    return {
+    response = {
         "job_id": job.id,
         "status": job.status
     }
+
+    if job.status == "completed" and job.output_file_key:
+        response["download_url"] = job.output_file_key
+
+    return response
 
 
 @router.get("/{job_id}/download")

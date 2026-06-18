@@ -5,8 +5,9 @@ import {
   downloadJobResult, rotatePdf, watermarkPdf, organizePdf, aiSummarize,
   addPageNumbers, wordToPdf, pdfToWord, excelToPdf, pdfToExcel,
   pptToPdf, signPdf, aiTranslate, aiRewrite, qrToPdf,
+  runTool,
 } from "@/lib/pdfApi";
-import { useState, useRef, useCallback, use, useEffect } from "react";
+import { useState, useRef, useCallback, use, useEffect, type Dispatch, type SetStateAction, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { tools } from "@/lib/data";
@@ -50,6 +51,22 @@ interface ToolState {
   qrUrl?: string; qrSize?: string; qrFormat?: string;
   // QR to PDF
   qr2pdfUrl?: string; qr2pdfPosition?: string; qr2pdfSize?: string; qr2pdfPages?: string;
+  textValue?: string;
+  imageQuality?: number;
+  resizeWidth?: number;
+  resizeHeight?: number;
+  downscaleMaxWidth?: number;
+  downscaleMaxHeight?: number;
+  cropLeft?: number;
+  cropTop?: number;
+  cropWidth?: number;
+  cropHeight?: number;
+  backgroundColor?: string;
+  smartCropWidth?: number;
+  smartCropHeight?: number;
+  dpi?: number;
+  upscaleScale?: number;
+  upscaleModel?: string;
 }
 interface FileEntry {
   file: File; id: string; name: string; size: string; pages?: string;
@@ -60,7 +77,7 @@ interface ToolConfig {
   title: string; desc: string; multi: boolean;
   accept: string; acceptLabel: string; num: string;
   howItWorks: { title: string; desc: string }[];
-  options: (state: ToolState, set: React.Dispatch<React.SetStateAction<ToolState>>) => React.ReactNode;
+  options: (state: ToolState, set: Dispatch<SetStateAction<ToolState>>) => ReactNode;
   actionLabel: string; resultName: string;
 }
 
@@ -616,6 +633,125 @@ const CFGS: Record<string, ToolConfig> = {
   },
 };
 
+const emptyOptions = () => null;
+
+const numberInput = (
+  label: string,
+  value: number | undefined,
+  fallback: number,
+  onChange: (value: number) => void
+) => (
+  <div className="option-group">
+    <span className="option-label">{label}</span>
+    <input suppressHydrationWarning
+      className="option-input"
+      type="number"
+      value={value ?? fallback}
+      onChange={(e) => onChange(parseInt(e.target.value || `${fallback}`, 10))}
+    />
+  </div>
+);
+
+type NewToolDef = {
+  id: string;
+  title: string;
+  desc: string;
+  accept: string;
+  acceptLabel: string;
+  actionLabel: string;
+  resultName: string;
+  endpoint: string;
+  category: "file" | "text";
+  options?: ToolConfig["options"];
+  payload?: (fileId: number, state: ToolState) => Record<string, unknown>;
+  textPayload?: (state: ToolState) => Record<string, unknown>;
+};
+
+const NEW_TOOL_DEFS: NewToolDef[] = [
+  { id: "pdf2text", title: "PDF TO TEXT", desc: "Extract text from a PDF into a .txt file.", accept: ".pdf", acceptLabel: "PDF file", actionLabel: "Extract Text", resultName: "Extracted.txt", endpoint: "pdf-to-text", category: "file" },
+  { id: "excel2csv", title: "EXCEL TO CSV", desc: "Convert spreadsheet rows into CSV.", accept: ".xls,.xlsx", acceptLabel: "Excel file", actionLabel: "Convert to CSV", resultName: "Spreadsheet.csv", endpoint: "excel-to-csv", category: "file" },
+  { id: "excel2json", title: "EXCEL TO JSON", desc: "Convert spreadsheet rows into JSON records.", accept: ".xls,.xlsx", acceptLabel: "Excel file", actionLabel: "Convert to JSON", resultName: "Spreadsheet.json", endpoint: "excel-to-json", category: "file" },
+  { id: "word2txt", title: "WORD TO TXT", desc: "Convert Word content to plain text.", accept: ".doc,.docx", acceptLabel: "Word file", actionLabel: "Convert to TXT", resultName: "Document.txt", endpoint: "word-to-txt", category: "file" },
+  { id: "word2html", title: "WORD TO HTML", desc: "Convert Word content to HTML.", accept: ".doc,.docx", acceptLabel: "Word file", actionLabel: "Convert to HTML", resultName: "Document.html", endpoint: "word-to-html", category: "file" },
+  { id: "word2markdown", title: "WORD TO MARKDOWN", desc: "Convert Word content to Markdown.", accept: ".doc,.docx", acceptLabel: "Word file", actionLabel: "Convert to Markdown", resultName: "Document.md", endpoint: "word-to-markdown", category: "file" },
+  { id: "jpg2png", title: "JPG TO PNG", desc: "Convert JPG images to PNG.", accept: ".jpg,.jpeg", acceptLabel: "JPG image", actionLabel: "Convert to PNG", resultName: "Image.png", endpoint: "jpg-to-png", category: "file" },
+  { id: "png2jpg", title: "PNG TO JPG", desc: "Convert PNG images to JPG.", accept: ".png", acceptLabel: "PNG image", actionLabel: "Convert to JPG", resultName: "Image.jpg", endpoint: "png-to-jpg", category: "file" },
+  { id: "png2webp", title: "PNG TO WEBP", desc: "Convert PNG images to WebP.", accept: ".png", acceptLabel: "PNG image", actionLabel: "Convert to WebP", resultName: "Image.webp", endpoint: "png-to-webp", category: "file" },
+  { id: "webp2jpg", title: "WEBP TO JPG", desc: "Convert WebP images to JPG.", accept: ".webp", acceptLabel: "WebP image", actionLabel: "Convert to JPG", resultName: "Image.jpg", endpoint: "webp-to-jpg", category: "file" },
+  { id: "json2csv", title: "JSON TO CSV", desc: "Convert JSON data to CSV.", accept: ".json", acceptLabel: "JSON file", actionLabel: "Convert to CSV", resultName: "Data.csv", endpoint: "json-to-csv", category: "file" },
+  { id: "csv2json", title: "CSV TO JSON", desc: "Convert CSV rows to JSON.", accept: ".csv", acceptLabel: "CSV file", actionLabel: "Convert to JSON", resultName: "Data.json", endpoint: "csv-to-json", category: "file" },
+  { id: "json2xml", title: "JSON TO XML", desc: "Convert JSON data to XML.", accept: ".json", acceptLabel: "JSON file", actionLabel: "Convert to XML", resultName: "Data.xml", endpoint: "json-to-xml", category: "file" },
+  { id: "xml2json", title: "XML TO JSON", desc: "Convert XML data to JSON.", accept: ".xml", acceptLabel: "XML file", actionLabel: "Convert to JSON", resultName: "Data.json", endpoint: "xml-to-json", category: "file" },
+  { id: "yaml2json", title: "YAML TO JSON", desc: "Convert YAML data to JSON.", accept: ".yaml,.yml", acceptLabel: "YAML file", actionLabel: "Convert to JSON", resultName: "Data.json", endpoint: "yaml-to-json", category: "file" },
+  { id: "pdf2png", title: "PDF TO PNG", desc: "Convert PDF pages to PNG images.", accept: ".pdf", acceptLabel: "PDF file", actionLabel: "Convert to PNG", resultName: "PDF_PNG.zip", endpoint: "pdf-to-png", category: "file", options: (s, set) => numberInput("DPI", s.dpi, 200, (dpi) => set((p) => ({ ...p, dpi }))), payload: (fileId, s) => ({ file_id: fileId, dpi: s.dpi ?? 200 }) },
+  { id: "pdf2html", title: "PDF TO HTML", desc: "Convert PDF text layout to HTML.", accept: ".pdf", acceptLabel: "PDF file", actionLabel: "Convert to HTML", resultName: "Document.html", endpoint: "pdf-to-html", category: "file" },
+  { id: "ppt2images", title: "PPT TO IMAGES", desc: "Export presentation slides as images.", accept: ".ppt,.pptx", acceptLabel: "PowerPoint file", actionLabel: "Export Images", resultName: "Slides.zip", endpoint: "ppt-to-images", category: "file", options: (s, set) => numberInput("DPI", s.dpi, 200, (dpi) => set((p) => ({ ...p, dpi }))), payload: (fileId, s) => ({ file_id: fileId, dpi: s.dpi ?? 200 }) },
+  { id: "image2text", title: "IMAGE TO TEXT", desc: "Extract text from an image.", accept: ".jpg,.jpeg,.png,.webp,.bmp,.tiff,.tif", acceptLabel: "image", actionLabel: "Extract Text", resultName: "Image_Text.txt", endpoint: "image-to-text", category: "file", payload: (fileId, s) => ({ file_id: fileId, language: s.ocrLanguage ?? "eng" }) },
+  { id: "screenshot2text", title: "SCREENSHOT TO TEXT", desc: "Extract text from a screenshot.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "screenshot", actionLabel: "Extract Text", resultName: "Screenshot_Text.txt", endpoint: "screenshot-to-text", category: "file", payload: (fileId, s) => ({ file_id: fileId, language: s.ocrLanguage ?? "eng" }) },
+  { id: "handwriting2text", title: "HANDWRITING TO TEXT", desc: "Extract text from handwriting images.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "handwriting image", actionLabel: "Extract Text", resultName: "Handwriting_Text.txt", endpoint: "handwriting-to-text", category: "file", payload: (fileId, s) => ({ file_id: fileId, language: s.ocrLanguage === "eng" ? "en" : "en" }) },
+  { id: "compressjpg", title: "COMPRESS JPG", desc: "Reduce JPG image size.", accept: ".jpg,.jpeg", acceptLabel: "JPG image", actionLabel: "Compress JPG", resultName: "Compressed.jpg", endpoint: "compress-jpg", category: "file", options: (s, set) => numberInput("Quality", s.imageQuality, 75, (imageQuality) => set((p) => ({ ...p, imageQuality }))), payload: (fileId, s) => ({ file_id: fileId, quality: s.imageQuality ?? 75 }) },
+  { id: "compresspng", title: "COMPRESS PNG", desc: "Optimize PNG image size.", accept: ".png", acceptLabel: "PNG image", actionLabel: "Compress PNG", resultName: "Compressed.png", endpoint: "compress-png", category: "file" },
+  { id: "compresswebp", title: "COMPRESS WEBP", desc: "Reduce WebP image size.", accept: ".webp", acceptLabel: "WebP image", actionLabel: "Compress WebP", resultName: "Compressed.webp", endpoint: "compress-webp", category: "file", options: (s, set) => numberInput("Quality", s.imageQuality, 75, (imageQuality) => set((p) => ({ ...p, imageQuality }))), payload: (fileId, s) => ({ file_id: fileId, quality: s.imageQuality ?? 75 }) },
+  { id: "resizeimage", title: "RESIZE IMAGE", desc: "Resize an image to exact dimensions.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Resize Image", resultName: "Resized.png", endpoint: "resize-image", category: "file", options: (s, set) => <>{numberInput("Width", s.resizeWidth, 1024, (resizeWidth) => set((p) => ({ ...p, resizeWidth })))}{numberInput("Height", s.resizeHeight, 1024, (resizeHeight) => set((p) => ({ ...p, resizeHeight })))}</>, payload: (fileId, s) => ({ file_id: fileId, width: s.resizeWidth ?? 1024, height: s.resizeHeight ?? 1024 }) },
+  { id: "downscaleimage", title: "DOWNSCALE IMAGE", desc: "Shrink an image within max dimensions.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Downscale Image", resultName: "Downscaled.png", endpoint: "downscale-image", category: "file", options: (s, set) => <>{numberInput("Max Width", s.downscaleMaxWidth, 1024, (downscaleMaxWidth) => set((p) => ({ ...p, downscaleMaxWidth })))}{numberInput("Max Height", s.downscaleMaxHeight, 1024, (downscaleMaxHeight) => set((p) => ({ ...p, downscaleMaxHeight })))}</>, payload: (fileId, s) => ({ file_id: fileId, max_width: s.downscaleMaxWidth ?? 1024, max_height: s.downscaleMaxHeight ?? 1024 }) },
+  { id: "cropimage", title: "CROP IMAGE", desc: "Crop an image by position and size.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Crop Image", resultName: "Cropped.png", endpoint: "crop-image", category: "file", options: (s, set) => <>{numberInput("Left", s.cropLeft, 0, (cropLeft) => set((p) => ({ ...p, cropLeft })))}{numberInput("Top", s.cropTop, 0, (cropTop) => set((p) => ({ ...p, cropTop })))}{numberInput("Width", s.cropWidth, 512, (cropWidth) => set((p) => ({ ...p, cropWidth })))}{numberInput("Height", s.cropHeight, 512, (cropHeight) => set((p) => ({ ...p, cropHeight })))}</>, payload: (fileId, s) => ({ file_id: fileId, left: s.cropLeft ?? 0, top: s.cropTop ?? 0, width: s.cropWidth ?? 512, height: s.cropHeight ?? 512 }) },
+  { id: "circlecrop", title: "CIRCLE CROP", desc: "Crop an image into a transparent circle.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Circle Crop", resultName: "Circle_Crop.png", endpoint: "circle-crop", category: "file" },
+  { id: "removebackground", title: "REMOVE BACKGROUND", desc: "Remove the background from an image.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Remove Background", resultName: "No_Background.png", endpoint: "remove-background", category: "file" },
+  { id: "transparentbackground", title: "TRANSPARENT BACKGROUND", desc: "Create a transparent-background cutout.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Make Transparent", resultName: "Transparent.png", endpoint: "transparent-background", category: "file" },
+  { id: "replacebackground", title: "REPLACE BACKGROUND", desc: "Replace image background with a solid color.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Replace Background", resultName: "Background_Replaced.png", endpoint: "replace-background", category: "file", options: (s, set) => <div className="option-group"><span className="option-label">Background Color</span><input suppressHydrationWarning className="option-input" value={s.backgroundColor ?? "#ffffff"} onChange={(e) => set((p) => ({ ...p, backgroundColor: e.target.value }))} /></div>, payload: (fileId, s) => ({ file_id: fileId, background_color: s.backgroundColor ?? "#ffffff" }) },
+  { id: "smartcrop", title: "SMART CROP", desc: "Crop around the important content.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Smart Crop", resultName: "Smart_Crop.png", endpoint: "smart-crop", category: "file", options: (s, set) => <>{numberInput("Width", s.smartCropWidth, 1024, (smartCropWidth) => set((p) => ({ ...p, smartCropWidth })))}{numberInput("Height", s.smartCropHeight, 1024, (smartCropHeight) => set((p) => ({ ...p, smartCropHeight })))}</>, payload: (fileId, s) => ({ file_id: fileId, width: s.smartCropWidth ?? 1024, height: s.smartCropHeight ?? 1024 }) },
+  { id: "upscaleimage", title: "UPSCALE IMAGE", desc: "Upscale images with Real-ESRGAN.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Upscale Image", resultName: "Upscaled.png", endpoint: "upscale-image", category: "file", options: (s, set) => <><div className="option-group"><span className="option-label">Scale</span><select suppressHydrationWarning className="option-select" value={String(s.upscaleScale ?? 2)} onChange={(e) => set((p) => ({ ...p, upscaleScale: parseInt(e.target.value, 10) }))}><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option></select></div><div className="option-group"><span className="option-label">Model</span><select suppressHydrationWarning className="option-select" value={s.upscaleModel ?? "general"} onChange={(e) => set((p) => ({ ...p, upscaleModel: e.target.value }))}><option value="general">General</option><option value="soft">Soft</option><option value="anime">Anime</option><option value="anime_fast">Anime Fast</option></select></div></>, payload: (fileId, s) => ({ file_id: fileId, scale: s.upscaleScale ?? 2, model: s.upscaleModel ?? "general" }) },
+  { id: "image2cartoon", title: "IMAGE TO CARTOON", desc: "Apply a cartoon-style effect.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Create Cartoon", resultName: "Cartoon.png", endpoint: "image-to-cartoon", category: "file" },
+  { id: "image2sketch", title: "IMAGE TO SKETCH", desc: "Turn an image into a sketch.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Create Sketch", resultName: "Sketch.png", endpoint: "image-to-sketch", category: "file" },
+  { id: "image2anime", title: "IMAGE TO ANIME", desc: "Create an anime-style image effect.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "image", actionLabel: "Create Anime", resultName: "Anime.png", endpoint: "image-to-anime", category: "file" },
+  { id: "image2avatar", title: "IMAGE TO AVATAR", desc: "Stylize a face image into an avatar.", accept: ".jpg,.jpeg,.png,.webp", acceptLabel: "portrait image", actionLabel: "Create Avatar", resultName: "Avatar.png", endpoint: "image-to-avatar", category: "file" },
+  { id: "pdf2ppt", title: "PDF TO PPT", desc: "Convert PDF pages into image-based slides.", accept: ".pdf", acceptLabel: "PDF file", actionLabel: "Convert to PPT", resultName: "Presentation.pptx", endpoint: "pdf-to-ppt", category: "file", options: (s, set) => numberInput("DPI", s.dpi, 200, (dpi) => set((p) => ({ ...p, dpi }))), payload: (fileId, s) => ({ file_id: fileId, dpi: s.dpi ?? 200 }) },
+  { id: "pdf2epub", title: "PDF TO EPUB", desc: "Convert a PDF into an EPUB ebook.", accept: ".pdf", acceptLabel: "PDF file", actionLabel: "Convert to EPUB", resultName: "Book.epub", endpoint: "pdf-to-epub", category: "file" },
+  { id: "epub2pdf", title: "EPUB TO PDF", desc: "Convert an EPUB ebook to PDF.", accept: ".epub", acceptLabel: "EPUB file", actionLabel: "Convert to PDF", resultName: "Book.pdf", endpoint: "epub-to-pdf", category: "file" },
+  { id: "mobi2epub", title: "MOBI TO EPUB", desc: "Convert MOBI ebooks to EPUB.", accept: ".mobi", acceptLabel: "MOBI file", actionLabel: "Convert to EPUB", resultName: "Book.epub", endpoint: "mobi-to-epub", category: "file" },
+  { id: "azw32pdf", title: "AZW3 TO PDF", desc: "Convert AZW3 ebooks to PDF.", accept: ".azw3", acceptLabel: "AZW3 file", actionLabel: "Convert to PDF", resultName: "Book.pdf", endpoint: "azw3-to-pdf", category: "file" },
+  { id: "upper2lower", title: "UPPERCASE TO LOWERCASE", desc: "Convert text to lowercase.", accept: "", acceptLabel: "text", actionLabel: "Convert Text", resultName: "Text.txt", endpoint: "uppercase-to-lowercase", category: "text" },
+  { id: "lower2upper", title: "LOWERCASE TO UPPERCASE", desc: "Convert text to uppercase.", accept: "", acceptLabel: "text", actionLabel: "Convert Text", resultName: "Text.txt", endpoint: "lowercase-to-uppercase", category: "text" },
+  { id: "titlecase", title: "TEXT TO TITLE CASE", desc: "Convert text to title case.", accept: "", acceptLabel: "text", actionLabel: "Convert Text", resultName: "Title_Case.txt", endpoint: "text-to-title-case", category: "text" },
+  { id: "text2base64", title: "TEXT TO BASE64", desc: "Encode text as Base64.", accept: "", acceptLabel: "text", actionLabel: "Encode Text", resultName: "Base64.txt", endpoint: "text-to-base64", category: "text" },
+  { id: "base642text", title: "BASE64 TO TEXT", desc: "Decode Base64 into text.", accept: "", acceptLabel: "text", actionLabel: "Decode Text", resultName: "Decoded.txt", endpoint: "base64-to-text", category: "text" },
+  { id: "urlencode", title: "URL ENCODE", desc: "Encode text for URLs.", accept: "", acceptLabel: "text", actionLabel: "Encode URL", resultName: "Url_Encoded.txt", endpoint: "url-encode", category: "text" },
+  { id: "urldecode", title: "URL DECODE", desc: "Decode URL-encoded text.", accept: "", acceptLabel: "text", actionLabel: "Decode URL", resultName: "Url_Decoded.txt", endpoint: "url-decode", category: "text" },
+];
+
+const NEW_TOOL_MAP = Object.fromEntries(
+  NEW_TOOL_DEFS.map((tool) => [tool.id, tool])
+) as Record<string, NewToolDef>;
+
+const TEXT_TOOL_IDS = new Set(
+  NEW_TOOL_DEFS.filter((tool) => tool.category === "text").map((tool) => tool.id)
+);
+
+const NO_UPLOAD_TOOL_IDS = new Set(["qr", ...TEXT_TOOL_IDS]);
+
+Object.assign(
+  CFGS,
+  Object.fromEntries(
+    NEW_TOOL_DEFS.map((tool, index) => [
+      tool.id,
+      {
+        title: tool.title,
+        desc: tool.desc,
+        multi: false,
+        accept: tool.accept,
+        acceptLabel: tool.acceptLabel,
+        num: String(24 + index).padStart(2, "0"),
+        howItWorks: tool.category === "text"
+          ? [{ title: "Enter text", desc: "Paste your text." }, { title: "Process", desc: "Run the utility." }, { title: "Download", desc: "Get the result." }]
+          : [{ title: "Upload", desc: `Select your ${tool.acceptLabel}.` }, { title: "Process", desc: "We convert it securely." }, { title: "Download", desc: "Get the result." }],
+        options: tool.options ?? emptyOptions,
+        actionLabel: tool.actionLabel,
+        resultName: tool.resultName,
+      } satisfies ToolConfig,
+    ])
+  )
+);
+
 export default function ToolPage({ params }: { params: Promise<{ toolId: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -644,6 +780,15 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
     translateLang: "Hindi", rewriteTone: "Professional",
     qrUrl: "", qrSize: "512×512", qrFormat: "PNG",
     qr2pdfUrl: "", qr2pdfPosition: "Bottom Right", qr2pdfSize: "Medium", qr2pdfPages: "All Pages",
+    textValue: "",
+    imageQuality: 75,
+    resizeWidth: 1024, resizeHeight: 1024,
+    downscaleMaxWidth: 1024, downscaleMaxHeight: 1024,
+    cropLeft: 0, cropTop: 0, cropWidth: 512, cropHeight: 512,
+    backgroundColor: "#ffffff",
+    smartCropWidth: 1024, smartCropHeight: 1024,
+    dpi: 200,
+    upscaleScale: 2, upscaleModel: "general",
   });
   const [pState, setPState] = useState<"idle" | "processing" | "complete" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -700,8 +845,9 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
   }, [cfg?.multi]);
 
   const startProcessing = async () => {
-    if (toolId !== "qr" && !files.length) return;
+    if (!NO_UPLOAD_TOOL_IDS.has(toolId) && !files.length) return;
     if (toolId === "qr" && !state.qrUrl?.trim()) return;
+    if (TEXT_TOOL_IDS.has(toolId) && !state.textValue?.trim()) return;
     if (toolId === "qr2pdf" && (!files.length || !state.qr2pdfUrl?.trim())) return;
     if (toolId === "merge" && files.length < 2) {
       alert("Please upload at least 2 files to merge");
@@ -725,6 +871,16 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
           setPState("complete");
         }, 1200);
         return;
+      } else if (TEXT_TOOL_IDS.has(toolId)) {
+        const textTool = NEW_TOOL_MAP[toolId];
+        if (!textTool) throw new Error(`Tool ${toolId} not implemented`);
+        setCurStep(2);
+        result = await runTool(
+          textTool.endpoint,
+          textTool.textPayload
+            ? textTool.textPayload(state)
+            : { text: state.textValue ?? "" }
+        );
       } else {
         // For pre-loaded files, skip re-upload and use existing file_id directly
         let fileIds: number[];
@@ -745,39 +901,49 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
 
         setCurStep(2); // Processing
 
-        switch (toolId) {
-          case "merge":          result = await mergePdf(fileIds); break;
-          case "split":          result = await splitPdf(fileIds[0]); break;
-          case "compress":       result = await compressPdf(fileIds[0], state.compressionPercent ?? 50); break;
-          case "protect":        result = await protectPdf(fileIds[0], state.password ?? ""); break;
-          case "unlock":         result = await unlockPdf(fileIds[0], state.password ?? ""); break;
-          case "pdf2jpg":        result = await pdfToJpg(fileIds[0]); break;
-          case "jpg2pdf":        result = await jpgToPdf(fileIds); break;
-          case "ocr":            result = await ocrPdf(fileIds[0], state.ocrLanguage ?? "eng"); break;
-          case "rotate":         result = await rotatePdf(fileIds[0], state.rotation ?? 270); break;
-          case "watermark":      result = await watermarkPdf(fileIds[0], state.watermarkText ?? ""); break;
-          case "organize":       result = await organizePdf(fileIds[0], [1]); break;
-          case "ai":             result = await aiSummarize(fileIds[0]); break;
-          case "addPageNumbers": result = await addPageNumbers(fileIds[0]); break;
-          case "word2pdf":       result = await wordToPdf(fileIds[0]); break;
-          case "pdf2word":       result = await pdfToWord(fileIds[0]); break;
-          case "excel2pdf":      result = await excelToPdf(fileIds[0]); break;
-          case "pdf2excel":      result = await pdfToExcel(fileIds[0]); break;
-          case "ppt2pdf":        result = await pptToPdf(fileIds[0]); break;
-          case "sign":
-            result = await signPdf({
-              pdfFileId: fileIds[0],
-              mode: state.signType === "stamp" ? "image" : state.signType === "digital" ? "digital" : "typed",
-              signatureText: state.signText,
-              signatureFileId: state.stampFileId,
-              certificateFileId: state.certFileId,
-              password: state.signPassword,
-            });
-            break;
-          case "ai-translate":   result = await aiTranslate(fileIds[0], state.translateLang || "Hindi"); break;
-          case "ai-rewrite":     result = await aiRewrite(fileIds[0], state.rewriteTone || "Professional"); break;
-          case "qr2pdf":         result = await qrToPdf(fileIds[0], state.qr2pdfUrl ?? ""); break;
-          default: throw new Error(`Tool ${toolId} not implemented`);
+        const newTool = NEW_TOOL_MAP[toolId];
+        if (newTool) {
+          result = await runTool(
+            newTool.endpoint,
+            newTool.payload
+              ? newTool.payload(fileIds[0], state)
+              : { file_id: fileIds[0] }
+          );
+        } else {
+          switch (toolId) {
+            case "merge":          result = await mergePdf(fileIds); break;
+            case "split":          result = await splitPdf(fileIds[0]); break;
+            case "compress":       result = await compressPdf(fileIds[0], state.compressionPercent ?? 50); break;
+            case "protect":        result = await protectPdf(fileIds[0], state.password ?? ""); break;
+            case "unlock":         result = await unlockPdf(fileIds[0], state.password ?? ""); break;
+            case "pdf2jpg":        result = await pdfToJpg(fileIds[0]); break;
+            case "jpg2pdf":        result = await jpgToPdf(fileIds); break;
+            case "ocr":            result = await ocrPdf(fileIds[0], state.ocrLanguage ?? "eng"); break;
+            case "rotate":         result = await rotatePdf(fileIds[0], state.rotation ?? 270); break;
+            case "watermark":      result = await watermarkPdf(fileIds[0], state.watermarkText ?? ""); break;
+            case "organize":       result = await organizePdf(fileIds[0], [1]); break;
+            case "ai":             result = await aiSummarize(fileIds[0]); break;
+            case "addPageNumbers": result = await addPageNumbers(fileIds[0]); break;
+            case "word2pdf":       result = await wordToPdf(fileIds[0]); break;
+            case "pdf2word":       result = await pdfToWord(fileIds[0]); break;
+            case "excel2pdf":      result = await excelToPdf(fileIds[0]); break;
+            case "pdf2excel":      result = await pdfToExcel(fileIds[0]); break;
+            case "ppt2pdf":        result = await pptToPdf(fileIds[0]); break;
+            case "sign":
+              result = await signPdf({
+                pdfFileId: fileIds[0],
+                mode: state.signType === "stamp" ? "image" : state.signType === "digital" ? "digital" : "typed",
+                signatureText: state.signText,
+                signatureFileId: state.stampFileId,
+                certificateFileId: state.certFileId,
+                password: state.signPassword,
+              });
+              break;
+            case "ai-translate":   result = await aiTranslate(fileIds[0], state.translateLang || "Hindi"); break;
+            case "ai-rewrite":     result = await aiRewrite(fileIds[0], state.rewriteTone || "Professional"); break;
+            case "qr2pdf":         result = await qrToPdf(fileIds[0], state.qr2pdfUrl ?? ""); break;
+            default: throw new Error(`Tool ${toolId} not implemented`);
+          }
         }
       }
 
@@ -791,6 +957,11 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
             clearInterval(interval);
             setProgress(100);
             setCurStep(4);
+            if (status.download_url) {
+              setDownloadUrl(status.download_url);
+              setPState("complete");
+              return;
+            }
             try {
               const dlResult = await downloadJobResult(result.job_id);
               const objectUrl = window.URL.createObjectURL(dlResult.blob);
@@ -913,7 +1084,7 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
           <div className="tool-layout">
             <div>
               {/* Upload zone — hidden for QR generator */}
-              {toolId !== "qr" && (
+              {!NO_UPLOAD_TOOL_IDS.has(toolId) && (
               <div
                 className={`upload-zone${isDrag ? " drag-over" : ""}`}
                 onDragOver={(e) => { e.preventDefault(); setIsDrag(true); }}
@@ -943,6 +1114,42 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
               )}
 
               {/* QR Generator — URL input */}
+              {TEXT_TOOL_IDS.has(toolId) && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{
+                    background: "var(--bg-2)", border: "1px solid var(--border)",
+                    borderRadius: "var(--radius-lg)", padding: "28px 24px",
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>
+                      Text
+                    </div>
+                    <textarea suppressHydrationWarning
+                      className="option-input"
+                      placeholder="Paste text here"
+                      value={state.textValue ?? ""}
+                      onChange={(e) => setState((s) => ({ ...s, textValue: e.target.value }))}
+                      style={{ minHeight: 180, resize: "vertical", fontSize: 14 }}
+                    />
+                    {state.textValue?.trim() && (
+                      <div style={{ marginTop: 10, fontSize: 11, color: "var(--accent-2)", display: "flex", alignItems: "center", gap: 5 }}>
+                        <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                        Ready to process
+                      </div>
+                    )}
+                  </div>
+
+                  <button suppressHydrationWarning
+                    className="btn btn-dark btn-block"
+                    onClick={startProcessing}
+                    disabled={!state.textValue?.trim()}
+                    style={{ opacity: state.textValue?.trim() ? 1 : 0.5, cursor: state.textValue?.trim() ? "pointer" : "not-allowed" }}
+                  >
+                    {cfg.actionLabel}
+                    <SvgIcon d="M5 12h14M12 5l7 7-7 7" size={14} />
+                  </button>
+                </div>
+              )}
+
               {toolId === "qr" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <div style={{

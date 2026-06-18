@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/lib/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { Analytics } from "@vercel/analytics/next";
+//import { Analytics } from "@vercel/analytics/next";
 
 
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </AuthProvider>
           </ThemeProvider>
         </GoogleOAuthProvider>
-        <Analytics />
+        {/* <Analytics /> */}
       </body>
     </html>
   );

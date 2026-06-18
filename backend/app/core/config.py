@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     POPPLER_PATH: str
     GHOSTSCRIPT_PATH: str
     GOOGLE_CLIENT_ID: str
+    GFPGAN_MODEL_PATH: str | None = None
+    MEDIAPIPE_FACE_STYLIZER_MODEL_PATH: str | None = None
+    REAL_ESRGAN_EXE_PATH: str | None = None
+    CALIBRE_PATH: str
     
 
     class Config:
