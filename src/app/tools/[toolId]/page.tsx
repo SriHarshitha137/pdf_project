@@ -67,6 +67,7 @@ interface ToolState {
   dpi?: number;
   upscaleScale?: number;
   upscaleModel?: string;
+  organizeMode?: string;
 }
 interface FileEntry {
   file: File; id: string; name: string; size: string; pages?: string;
@@ -256,10 +257,18 @@ const CFGS: Record<string, ToolConfig> = {
     title: "ORGANIZE", desc: "Reorder, delete or add pages.",
     multi: false, accept: ".pdf", acceptLabel: "PDF file", num: "11",
     howItWorks: [{ title: "Upload", desc: "Select PDF." }, { title: "Organize", desc: "Reorder pages." }, { title: "Download", desc: "Organized PDF." }],
-    options: () => (
+    options: (state, set) => (
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {["Reorder Pages","Delete Pages","Add Blank Pages"].map((a) => (
-          <button suppressHydrationWarning key={a} className="btn btn-outline btn-sm" style={{ justifyContent: "center" }}>{a}</button>
+          <button
+            suppressHydrationWarning
+            key={a}
+            className={`btn btn-outline btn-sm${state.organizeMode === a ? " selected" : ""}`}
+            style={{ justifyContent: "center" }}
+            onClick={() => set((s) => ({ ...s, organizeMode: a }))}
+          >
+            {a}
+          </button>
         ))}
       </div>
     ),
@@ -780,6 +789,7 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
     translateLang: "Hindi", rewriteTone: "Professional",
     qrUrl: "", qrSize: "512×512", qrFormat: "PNG",
     qr2pdfUrl: "", qr2pdfPosition: "Bottom Right", qr2pdfSize: "Medium", qr2pdfPages: "All Pages",
+    organizeMode: "Reorder Pages",
     textValue: "",
     imageQuality: 75,
     resizeWidth: 1024, resizeHeight: 1024,

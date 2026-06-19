@@ -2,7 +2,7 @@
 import {
   mergePdf, splitPdf, compressPdf, protectPdf, unlockPdf,
   pdfToJpg, jpgToPdf, ocrPdf, uploadFile, getJobStatus,
-  getDownloadUrl, rotatePdf, watermarkPdf, organizePdf, aiSummarize,
+  downloadJobResult, rotatePdf, watermarkPdf, organizePdf, aiSummarize,
   addPageNumbers, wordToPdf, pdfToWord, excelToPdf, pdfToExcel,
   pptToPdf, signPdf, aiTranslate, aiRewrite,
 } from "@/lib/pdfApi";
@@ -37,7 +37,7 @@ const sidebarCats = [
   { id: "Utilities",   label: "Utilities",    icon: ["M3 3h7v7H3z","M14 3h7v7h-7z","M3 14h7v7H3z","M14 14h3v3h-3z","M17 17h3v3h-3z"] },
 ];
 
-interface ToolState { splitMode?: string; rotation?: string; wmTab?: string; pageNumPos?: string; signTab?: string; translateLang?: string; rewriteTone?: string; qrUrl?: string; }
+interface ToolState { splitMode?: string; rotation?: string; wmTab?: string; pageNumPos?: string; signTab?: string; translateLang?: string; rewriteTone?: string; qrUrl?: string; originalOrder?: boolean; organizeMode?: string; }
 interface FileEntry {
   file: File; id: string; name: string; size: string; pages?: string;
   detected?: DetectedFile;
@@ -56,10 +56,12 @@ const CFGS: Record<string, ToolConfig> = {
     title: "MERGE", desc: "Combine multiple PDF files into a single document.",
     multi: true, accept: ".pdf", acceptLabel: "PDF files", num: "02",
     howItWorks: [{ title: "Add PDFs", desc: "Select multiple PDFs." }, { title: "Arrange", desc: "Reorder as needed." }, { title: "Download", desc: "Get merged PDF." }],
-    options: (_s, _set) => (
+    options: (state, set) => (
       <div className="option-group">
-        <label className="checkbox-row" style={{ cursor: "pointer" }}>
-          <div className="checkbox-box checked"><SvgIcon d="M20 6L9 17l-5-5" size={9} strokeWidth={3} /></div>
+        <label className="checkbox-row" style={{ cursor: "pointer" }} onClick={() => set((s) => ({ ...s, originalOrder: !s.originalOrder }))}>
+          <div className={`checkbox-box${state.originalOrder ? " checked" : ""}`}>
+            {state.originalOrder && <SvgIcon d="M20 6L9 17l-5-5" size={9} strokeWidth={3} />}
+          </div>
           <span className="checkbox-label">Merge in the original order</span>
         </label>
       </div>
@@ -213,10 +215,17 @@ const CFGS: Record<string, ToolConfig> = {
     title: "ORGANIZE", desc: "Reorder, delete or add pages.",
     multi: false, accept: ".pdf", acceptLabel: "PDF file", num: "11",
     howItWorks: [{ title: "Upload", desc: "Select PDF." }, { title: "Organize", desc: "Reorder pages." }, { title: "Download", desc: "Organized PDF." }],
-    options: () => (
+    options: (state, set) => (
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {["Reorder Pages","Delete Pages","Add Blank Pages"].map((a) => (
-          <button key={a} className="btn btn-outline btn-sm" style={{ justifyContent: "center" }}>{a}</button>
+          <button
+            key={a}
+            className={`btn btn-outline btn-sm${state.organizeMode === a ? " selected" : ""}`}
+            style={{ justifyContent: "center" }}
+            onClick={() => set((s) => ({ ...s, organizeMode: a }))}
+          >
+            {a}
+          </button>
         ))}
       </div>
     ),
@@ -425,7 +434,7 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
   const [detectedInfo, setDetectedInfo] = useState<{ detected: DetectedFile; name: string } | null>(null);
   const [showBanner, setShowBanner] = useState(false);
 
-  const [state, setState] = useState<ToolState>({ splitMode: "Split by page range", rotation: "Left 90°", wmTab: "Text", pageNumPos: "Bottom Center", signTab: "Draw", translateLang: "Hindi", rewriteTone: "Professional", qrUrl: "" });
+  const [state, setState] = useState<ToolState>({ splitMode: "Split by page range", rotation: "Left 90°", wmTab: "Text", pageNumPos: "Bottom Center", signTab: "Draw", translateLang: "Hindi", rewriteTone: "Professional", qrUrl: "", originalOrder: true, organizeMode: "Reorder Pages" });
   const [pState, setPState] = useState<"idle" | "processing" | "complete" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [curStep, setCurStep] = useState(0);

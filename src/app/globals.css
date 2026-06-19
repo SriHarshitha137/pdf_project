@@ -1063,6 +1063,7 @@ body {
 .checkbox-box.checked {
   background: var(--text);
   border-color: var(--text);
+  color: var(--bg);
 }
 
 .checkbox-label {

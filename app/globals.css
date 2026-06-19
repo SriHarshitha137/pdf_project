@@ -447,7 +447,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   transition: all var(--transition); background: var(--bg);
 }
-.checkbox-box.checked { background: var(--text); border-color: var(--text); }
+.checkbox-box.checked { background: var(--text); border-color: var(--text); color: var(--bg); }
 .checkbox-label { font-size: 13px; color: var(--text); }
 
 /* Radio */
