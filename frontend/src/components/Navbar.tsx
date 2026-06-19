@@ -93,7 +93,7 @@ export default function Navbar() {
               )}
             </div>
             <Link href="/" className="nav-link">Solutions</Link>
-            <Link href="/about" className="nav-link">Resources</Link>
+            <Link href="/about" className="nav-link">About</Link>
           </div>
 
           <div className="nav-actions">

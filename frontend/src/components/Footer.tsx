@@ -51,8 +51,13 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Company</h4>
             <ul>
-              {["About", "Privacy Policy", "Terms of Service", "Contact"].map((l) => (
-                <li key={l}><a href="#">{l}</a></li>
+              {[
+                { label: "About", href: "/about" },
+                { label: "Privacy Policy", href: "#" },
+                { label: "Terms of Service", href: "#" },
+                { label: "Contact", href: "#" },
+              ].map((l) => (
+                <li key={l.label}><Link href={l.href}>{l.label}</Link></li>
               ))}
             </ul>
           </div>
