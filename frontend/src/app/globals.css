@@ -296,6 +296,12 @@ body {
   background: var(--bg-3);
 }
 
+.btn-outline.selected {
+  border-color: var(--text);
+  background: var(--bg-3);
+  font-weight: 600;
+}
+
 .btn-green {
   background: var(--accent-2);
   color: #fff;
@@ -980,6 +986,10 @@ body {
   color: var(--muted-2);
   cursor: grab;
   flex-shrink: 0;
+}
+
+.file-row.dragging {
+  opacity: 0.5;
 }
 
 .file-row-info {

@@ -564,14 +564,6 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
             <SvgIcon d={c.icon} size={14} />{c.label}
           </Link>
         ))}
-        <div className="sidebar-download" style={{ marginTop: 24 }}>
-          <div className="sidebar-download-title">Work faster.</div>
-          <div className="sidebar-download-desc">Install our desktop app for offline productivity.</div>
-          <button className="btn btn-dark btn-sm" style={{ width: "100%", justifyContent: "center" }}>
-            <SvgIcon d={["M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4","M7 10l5 5 5-5","M12 15V3"]} size={12} />
-            Download App
-          </button>
-        </div>
       </div>
 
       {/* Main */}
@@ -580,7 +572,6 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
           <SvgIcon d="M19 12H5M12 19l-7-7 7-7" size={14} />Back
         </button>
 
-        <div className="tool-section-num">{cfg.num}</div>
         <h1 className="tool-title">{cfg.title}</h1>
         <p className="tool-desc">{cfg.desc}</p>
 

@@ -69,6 +69,7 @@ interface ToolState {
   upscaleScale?: number;
   upscaleModel?: string;
   organizeMode?: string;
+  originalOrder?: boolean;
 }
 interface FileEntry {
   file: File; id: string; name: string; size: string; pages?: string;
@@ -88,10 +89,16 @@ const CFGS: Record<string, ToolConfig> = {
     title: "MERGE", desc: "Combine multiple PDF files into a single document.",
     multi: true, accept: ".pdf", acceptLabel: "PDF files", num: "02",
     howItWorks: [{ title: "Add PDFs", desc: "Select multiple PDFs." }, { title: "Arrange", desc: "Reorder as needed." }, { title: "Download", desc: "Get merged PDF." }],
-    options: (_s, _set) => (
+    options: (state, set) => (
       <div className="option-group">
-        <label className="checkbox-row" style={{ cursor: "pointer" }}>
-          <div className="checkbox-box checked"><SvgIcon d="M20 6L9 17l-5-5" size={9} strokeWidth={3} /></div>
+        <label
+          className="checkbox-row"
+          style={{ cursor: "pointer" }}
+          onClick={() => set((s) => ({ ...s, originalOrder: !s.originalOrder }))}
+        >
+          <div className={`checkbox-box${state.originalOrder !== false ? " checked" : ""}`}>
+            {state.originalOrder !== false && <SvgIcon d="M20 6L9 17l-5-5" size={9} strokeWidth={3} />}
+          </div>
           <span className="checkbox-label">Merge in the original order</span>
         </label>
       </div>
@@ -836,6 +843,7 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
     qrUrl: "", qrSize: "512×512", qrFormat: "PNG",
     qr2pdfUrl: "", qr2pdfPosition: "Bottom Right", qr2pdfSize: "Medium", qr2pdfPages: "All Pages",
     organizeMode: "Reorder Pages",
+    originalOrder: true,
     textValue: "",
     imageQuality: 75,
     resizeWidth: 1024, resizeHeight: 1024,
@@ -851,6 +859,7 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
   const [progress, setProgress] = useState(0);
   const [curStep, setCurStep] = useState(0);
   const [isDrag, setIsDrag] = useState(false);
+  const [dragFileIdx, setDragFileIdx] = useState<number | null>(null);
   const [downloadUrl, setDownloadUrl] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   const preloadedRef = useRef(false);
@@ -899,6 +908,16 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
 
     setFiles((p) => (cfg?.multi ? [...p, ...arr] : arr.slice(0, 1)));
   }, [cfg?.multi]);
+
+  const moveFile = useCallback((from: number, to: number) => {
+    if (from === to) return;
+    setFiles((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+  }, []);
 
   const startProcessing = async () => {
     if (!NO_UPLOAD_TOOL_IDS.has(toolId) && !files.length) return;
@@ -1294,10 +1313,23 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
                 <div style={{ marginTop: 20 }}>
                   <div className="files-panel-title">Files to {cfg.title.toLowerCase()} ({files.length})</div>
                   <div className="file-list">
-                    {files.map((f, i) => (
-                      <div key={f.id} className="file-row">
+                    {files.map((f, i) => {
+                      const canReorder = toolId === "merge" && state.originalOrder === false;
+                      return (
+                      <div
+                        key={f.id}
+                        className={`file-row${canReorder && dragFileIdx === i ? " dragging" : ""}`}
+                        draggable={canReorder}
+                        onDragStart={canReorder ? () => setDragFileIdx(i) : undefined}
+                        onDragOver={canReorder ? (e) => e.preventDefault() : undefined}
+                        onDrop={canReorder ? () => {
+                          if (dragFileIdx !== null) moveFile(dragFileIdx, i);
+                          setDragFileIdx(null);
+                        } : undefined}
+                        onDragEnd={canReorder ? () => setDragFileIdx(null) : undefined}
+                      >
                         <div className="file-row-num">{String(i + 1).padStart(2, "0")}</div>
-                        <div className="file-row-drag">
+                        <div className="file-row-drag" style={canReorder ? undefined : { cursor: "default", opacity: 0.35 }}>
                           <SvgIcon d={["M9 6h6","M9 12h6","M9 18h6","M5 6h.01","M5 12h.01","M5 18h.01"]} size={13} />
                         </div>
                         <div className="file-row-info">
@@ -1323,7 +1355,8 @@ export default function ToolPage({ params }: { params: Promise<{ toolId: string 
                           <SvgIcon d="M18 6L6 18M6 6l12 12" size={13} />
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {cfg.multi && (
