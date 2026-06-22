@@ -537,8 +537,6 @@ body {
   flex-shrink: 0;
 }
 
-.stat-info {}
-
 .stat-num {
   font-size: 18px;
   font-weight: 700;
@@ -938,8 +936,6 @@ body {
 }
 
 /* Files panel */
-.files-panel {}
-
 .files-panel-title {
   font-size: 13px;
   font-weight: 600;
@@ -1499,8 +1495,6 @@ body {
   grid-template-columns: 220px 1fr;
   gap: 48px;
 }
-
-.home-tools-sidebar {}
 
 .home-sidebar-link {
   display: flex;

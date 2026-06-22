@@ -20,35 +20,44 @@ A full-featured PDF tools web app built with **Next.js 15 (App Router)** and Typ
 
 ```
 pdfkit-pro/
-├── app/
-│   ├── layout.tsx              # Root layout — wraps all pages with Navbar + Footer
-│   ├── globals.css             # All global styles (CSS variables, components)
-│   ├── page.tsx                # Home — hero, stats, tool grid, features, CTA
-│   ├── pricing/
-│   │   └── page.tsx            # Pricing — 3-tier plan cards
-│   ├── about/
-│   │   └── page.tsx            # About — mission, privacy, team blurbs
-│   └── tools/[toolId]/
-│       ├── layout.tsx          # Dynamic per-tool metadata
-│       └── page.tsx            # Tool page — dropzone, options, progress, result
-├── components/
-│   ├── Icon.tsx                # SVG icon wrapper (supports path arrays)
-│   ├── Navbar.tsx              # Sticky nav with tools mega-dropdown
-│   ├── Footer.tsx              # Footer with tool links and company columns
-│   └── ToolCard.tsx            # Card used in the home page tools grid
-└── lib/
-    └── data.ts                 # All shared data: tools, icons, categories, plans
+├── backend/                    # FastAPI backend python service
+└── frontend/                   # Next.js 15 (App Router) & TypeScript frontend
+    ├── src/
+    │   ├── app/
+    │   │   ├── layout.tsx      # Root layout — wraps all pages with Navbar + Footer
+    │   │   ├── globals.css     # All global styles (CSS variables, components)
+    │   │   ├── page.tsx        # Home — hero, stats, tool grid, features, CTA
+    │   │   ├── pricing/
+    │   │   │   └── page.tsx    # Pricing — 3-tier plan cards
+    │   │   ├── about/
+    │   │   │   └── page.tsx    # About — mission, privacy, team blurbs
+    │   │   └── tools/[toolId]/
+    │   │       ├── layout.tsx  # Dynamic per-tool metadata
+    │   │       └── page.tsx    # Tool page — dropzone, options, progress, result
+    │   ├── components/
+    │   │   ├── Icon.tsx        # SVG icon wrapper (supports path arrays)
+    │   │   ├── Navbar.tsx      # Sticky nav with tools mega-dropdown
+    │   │   ├── Footer.tsx      # Footer with tool links and company columns
+    │   │   └── ToolCard.tsx    # Card used in the home page tools grid
+    │   └── lib/
+    │       └── data.ts         # All shared data: tools, icons, categories, plans
+    └── public/                 # Static assets
 ```
 
 ---
 
 ## Getting Started
 
+### Running Frontend
+
 ```bash
-# 1. Install dependencies
+# 1. Navigate to frontend directory
+cd frontend
+
+# 2. Install dependencies
 npm install
 
-# 2. Start dev server
+# 3. Start dev server
 npm run dev
 ```
 
@@ -59,6 +68,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 npm run build
 npm start
 ```
+
+### Running Backend
+
+Please refer to the backend documentation inside the `backend/` folder.
 
 ---
 
